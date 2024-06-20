@@ -1,0 +1,6 @@
+flask
+torch
+accelerate
+transformers
+transformers[torch]
+nltk
