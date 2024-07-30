@@ -4,3 +4,4 @@ accelerate
 transformers
 transformers[torch]
 nltk
+youtube-transcript-api

@@ -2,13 +2,14 @@ import os
 
 from flask import Flask, request, jsonify
 from text_segmenter import MiniSegTextSegmenter
+from video_segmenter import VideoSegmenter
 
 app = Flask(__name__)
 
 segmenter = MiniSegTextSegmenter('./pretrained')
 
 
-@app.route('/segment', methods=['POST'])
+@app.route('/segment/text', methods=['POST'])
 def segment_text():
     text_data = request.get_json()
     text = text_data.get('text', [])
@@ -19,6 +20,14 @@ def segment_text():
     segments = segmenter.segment_text(text)
 
     return jsonify({'segments': segments})
+
+
+@app.route('/segment/yt', methods=['POST'])
+def segment_yt():
+    video_id = request.args.get('video_id')
+    video_segmenter = VideoSegmenter(MiniSegTextSegmenter('./pretrained'))
+    timestamps = video_segmenter.segment_video(video_id)
+    return jsonify({'timestamps': timestamps})
 
 
 if __name__ == '__main__':
