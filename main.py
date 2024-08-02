@@ -6,7 +6,8 @@ from video_segmenter import VideoSegmenter
 
 app = Flask(__name__)
 
-segmenter = MiniSegTextSegmenter('./pretrained')
+text_segmenter = MiniSegTextSegmenter('./pretrained')
+video_segmenter = VideoSegmenter(text_segmenter)
 
 
 @app.route('/segment/text', methods=['POST'])
@@ -15,9 +16,10 @@ def segment_text():
     text = text_data.get('text', [])
 
     if not text:
-        return jsonify({'error': 'No text provided'}), 400
+        return 'No text provided', 400
 
-    segments = segmenter.segment_text(text)
+    threshold = request.args.get('threshold', type=float)
+    segments = text_segmenter.segment_text(text, threshold)
 
     return jsonify({'segments': segments})
 
@@ -25,8 +27,12 @@ def segment_text():
 @app.route('/segment/yt', methods=['POST'])
 def segment_yt():
     video_id = request.args.get('video_id')
-    video_segmenter = VideoSegmenter(MiniSegTextSegmenter('./pretrained'))
-    timestamps = video_segmenter.segment_video(video_id)
+
+    if video_id is None:
+        return "Couldn't load video", 400
+
+    threshold = request.args.get('threshold', type=float)
+    timestamps = video_segmenter.segment_video(video_id, threshold)
     return jsonify({'timestamps': timestamps})
 
 
