@@ -1,8 +1,6 @@
 import nltk.data
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled
 
-from text_segmenter import MiniSegTextSegmenter
-
 nltk.download('punkt')
 
 
@@ -10,14 +8,14 @@ class VideoSegmenter:
     def __init__(self, text_segmenter):
         self.text_segmenter = text_segmenter
 
-    def segment_video(self, video_id: str):
+    def segment_video(self, video_id: str, threshold: float | None = None):
         try:
             transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
             lines = [line['text'] for line in transcript]
             sentences = self._captions_to_sentences(lines)
         except TranscriptsDisabled:
             raise Exception('Could not retrieve transcript for video id: {}'.format(video_id))
-        segments = self.text_segmenter.segment_text(sentences)
+        segments = self.text_segmenter.segment_text(sentences, threshold)
         return self._generate_timestamps(transcript, segments)
 
     def _captions_to_sentences(self, captions: list[str]):
