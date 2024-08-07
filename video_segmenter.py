@@ -1,26 +1,40 @@
 import nltk.data
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled
 
-nltk.download('punkt')
+nltk.download("punkt")
 
 
 class VideoSegmenter:
-    def __init__(self, text_segmenter):
+    def __init__(self, text_segmenter, summary_generator):
         self.text_segmenter = text_segmenter
+        self.summary_generator = summary_generator
 
-    def segment_video(self, video_id: str, threshold: float | None = None):
+    def segment_video(
+        self,
+        video_id: str,
+        generate_summaries: bool = False,
+        threshold: float | None = None,
+    ):
         try:
-            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])
-            lines = [line['text'] for line in transcript]
+            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=["en"])
+            lines = [line["text"] for line in transcript]
             sentences = self._captions_to_sentences(lines)
         except TranscriptsDisabled:
-            raise Exception('Could not retrieve transcript for video id: {}'.format(video_id))
+            raise Exception(
+                "Could not retrieve transcript for video id: {}".format(video_id)
+            )
         segments = self.text_segmenter.segment_text(sentences, threshold)
-        return self._generate_timestamps(transcript, segments)
+        timestamps = self._generate_timestamps(transcript, segments)
+
+        if generate_summaries:
+            summaries = self.summary_generator.generate_summaries(segments)
+            return timestamps, summaries
+
+        return timestamps
 
     def _captions_to_sentences(self, captions: list[str]):
-        text = ' '.join(captions)
-        sentence_detector = nltk.data.load('tokenizers/punkt/english.pickle')
+        text = " ".join(captions)
+        sentence_detector = nltk.data.load("tokenizers/punkt/english.pickle")
         sentences = sentence_detector.tokenize(text)
         return sentences
 
@@ -32,13 +46,16 @@ class VideoSegmenter:
         eaten_so_far = 0
 
         for segment_ending_index in segment_ending_indices:
-            while (eaten_so_far + len(captions[captions_idx]['text'])) < segment_ending_index:
-                eaten_so_far += len(captions[captions_idx]['text']) + 1
+            while (
+                eaten_so_far + len(captions[captions_idx]["text"])
+            ) < segment_ending_index:
+                eaten_so_far += len(captions[captions_idx]["text"]) + 1
                 captions_idx += 1
             segment_intersection_len = segment_ending_index - eaten_so_far + 1
 
-            split_timestamp = (segment_intersection_len / len(captions[captions_idx]['text'])) * captions[captions_idx][
-                'duration'] + captions[captions_idx]['start']
+            split_timestamp = (
+                segment_intersection_len / len(captions[captions_idx]["text"])
+            ) * captions[captions_idx]["duration"] + captions[captions_idx]["start"]
             timestamps.append(split_timestamp)
 
         return timestamps
@@ -51,4 +68,3 @@ class VideoSegmenter:
             res.append(offset - 1)
 
         return res
-

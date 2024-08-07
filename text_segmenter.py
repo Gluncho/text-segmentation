@@ -1,20 +1,27 @@
+import os
 import torch
 from loader import load_model_and_tokenizer as load
 
 DEFAULT_THRESHOLD = 0.4
 
+
 class MiniSegTextSegmenter:
     def __init__(self, pretrained_dir: str = "."):
+        os.environ["TOKENIZERS_PARALLELISM"] = "false"
         model, tokenizer = load(pretrained_dir)
         print("Model loaded successfully")
         self.tokenizer = tokenizer
         self.model = model
 
-    def segment_text(self, text: list[str], threshold: float | None = DEFAULT_THRESHOLD) -> list[str]:
+    def segment_text(
+        self, text: list[str], threshold: float | None = DEFAULT_THRESHOLD
+    ) -> list[str]:
         if threshold is None:
             threshold = DEFAULT_THRESHOLD
 
-        tokens = self.tokenizer(text, padding=True, truncation=True, return_tensors='pt')
+        tokens = self.tokenizer(
+            text, padding=True, truncation=True, return_tensors="pt"
+        )
 
         with torch.no_grad():
             model_output = self.model([tokens], None)
@@ -31,7 +38,7 @@ class MiniSegTextSegmenter:
                 result.append(segment)
                 break
 
-            segment = " ".join(text[l_boundary:r_boundary + 1])
+            segment = " ".join(text[l_boundary : r_boundary + 1])
             result.append(segment)
             l_boundary = r_boundary + 1
 
@@ -39,7 +46,6 @@ class MiniSegTextSegmenter:
 
     def _get_predictions_from_model_output(self, model_output, threshold):
         logits = model_output.logits[0]
-        probabilities = torch.nn.functional.softmax(logits, dim=-1)[:,-1]
+        probabilities = torch.nn.functional.softmax(logits, dim=-1)[:, -1]
         predictions = probabilities > threshold
         return predictions.tolist()
-
