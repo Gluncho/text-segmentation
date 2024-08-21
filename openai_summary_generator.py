@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from openai import OpenAI
 
 DEFAULT_MODEL_NAME = "gpt-4o-2024-08-06"
-DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant that extracts main opic and summary from the paragraph I provide."
+DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant that extracts main topic and summary from the paragraph I provide."
 
 
 class ParagraphSummary(BaseModel):
