@@ -5,3 +5,5 @@ transformers
 transformers[torch]
 nltk
 youtube-transcript-api
+pydantic
+openai
