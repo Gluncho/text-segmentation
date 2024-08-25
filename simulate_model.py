@@ -2,12 +2,16 @@ strs = [ "You've all seen these kinds of pictures where a person's face is \"too
 import requests
 
 response = requests.post(
-    "http://localhost:5000/segment/yt?video_id=eMlx5fFNoYc",
+    "http://localhost:5000/segment/yt?video_id=eMlx5fFNoYc&generate_summaries=true",
     json={"text": strs}
 )
 
 if response.status_code == 200:
-    segmented_text = response.json()["timestamps"]
-    print(segmented_text)
+    timestamps = response.json()["timestamps"]
+    summaries = response.json()["summaries"]
+    for idx, (timestamp, summary) in enumerate(zip(timestamps, summaries)):
+        print(f"Segment {idx + 1} starts at {timestamp} seconds and is summarized as:")
+        print(summary)
+        print()
 else:
     print(f"Error: {response.status_code} - {response.text}")

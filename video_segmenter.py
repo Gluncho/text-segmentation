@@ -2,6 +2,7 @@ import nltk.data
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled
 
 nltk.download("punkt")
+nltk.download("punkt_tab")
 
 
 class VideoSegmenter:
