@@ -9,8 +9,10 @@ response = requests.post(
 if response.status_code == 200:
     timestamps = response.json()["timestamps"]
     summaries = response.json()["summaries"]
+    timestamps = [0] + timestamps
     for idx, (timestamp, summary) in enumerate(zip(timestamps, summaries)):
-        print(f"Segment {idx + 1} starts at {timestamp} seconds and is summarized as:")
+        minute, seconds = divmod(timestamp, 60)
+        print(f"Segment {idx + 1} starts at {minute:.0f}:{seconds:.0f} and is about:")
         print(summary)
         print()
 else:
